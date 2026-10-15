@@ -6,7 +6,7 @@ High level guidance:
 - Do not take any actions that cause downtime, are destructive, or similar, without EXPLICIT approval from the user.
 - All deployments and changes need to be done using configuration as code. One-off changes directly to the cluster are acceptable, but must be upstreamed afterwards.
 - All changes must be tracked in git. After performing a user's request, you may stage the changes, but do not commit or push until the user has approved them.
-- Changes should NEVER go directly to the `main` branch. Always open a well-named branch and create a PR to merge the changes into main.
+- Changes should NEVER go directly to the `main` branch. Work on a well-named branch and open a PR to merge into `main`. A branch represents a *change set*, not a single request: all changes related to a change set stay on one branch — if you're already on a suitable working branch, keep making related changes there instead of opening a new branch per request.
 
 ## Talos
 
