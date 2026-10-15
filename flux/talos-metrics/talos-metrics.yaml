@@ -1,0 +1,61 @@
+# Talos exposes node_exporter-compatible metrics on every node at :9100
+# (unauthenticated, bound to the node network — no exporter pod required).
+#
+# Kubernetes nodes are not pods, so there is nothing for a ServiceMonitor to
+# select. Register the nodes as a headless Service with hand-managed Endpoints
+# and let the ServiceMonitor scrape them — the same pattern kube-prometheus-stack
+# itself uses for kube-scheduler/kube-controller-manager.
+#
+# Node IPs are pinned in the Talos machine configs (homelab repo). Update the
+# Endpoints list below if a node is ever re-IPed.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: talos
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: talos
+spec:
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: talos
+  namespace: monitoring
+subsets:
+  - addresses:
+      # control plane
+      - ip: 192.168.1.235
+      # workers
+      - ip: 192.168.1.236
+      - ip: 192.168.1.91
+      - ip: 192.168.1.63
+    ports:
+      - name: metrics
+        port: 9100
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: talos
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: talos
+spec:
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: talos
+  endpoints:
+    - port: metrics
+      scheme: http
+      interval: 30s
