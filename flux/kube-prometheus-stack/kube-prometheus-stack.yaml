@@ -50,6 +50,18 @@ spec:
       persistence:
         enabled: true
         size: 2Gi
+    # Talos binds these component metrics ports to localhost (scheduler 10259,
+    # controller-manager 10257, kube-proxy 10249) and does not serve etcd
+    # metrics at all, so these targets can never be scraped from the node IP.
+    # Disabling keeps the Prometheus targets page honest.
+    kubeControllerManager:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    kubeScheduler:
+      enabled: false
     prometheus:
       prometheusSpec:
         podMonitorSelectorNilUsesHelmValues: false
