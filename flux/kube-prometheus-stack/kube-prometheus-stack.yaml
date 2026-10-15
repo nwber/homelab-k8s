@@ -55,6 +55,14 @@ spec:
         podMonitorSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
         serviceMonitorSelectorNilUsesHelmValues: false
+        securityContext:
+          # local-path provisions root-owned dirs and Prometheus mounts its
+          # data through a subPath that never receives fsGroup ownership, so
+          # the chart's default non-root (uid 1000) cannot write the TSDB.
+          runAsUser: 0
+          runAsGroup: 0
+          fsGroup: 0
+          runAsNonRoot: false
         storageSpec:
           volumeClaimTemplate:
             spec:
