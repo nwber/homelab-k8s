@@ -47,6 +47,12 @@ spec:
                 requests:
                   storage: 2Gi
     grafana:
+      admin:
+        # Password is owned by us and stored SOPS-encrypted in git
+        # (grafana-admin-credentials.sops.yaml). Without this, the chart
+        # generates a random password on every render, so every Helm upgrade
+        # rotates the admin login and rolls the Grafana pod.
+        existingSecret: grafana-admin-credentials
       persistence:
         enabled: true
         size: 2Gi
