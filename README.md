@@ -7,6 +7,14 @@
 - kube-prometheus-stack
 - More on the way!
 
+## TODO
+
+- [ ] **MetalLB** — real `LoadBalancer` IPs instead of ClusterIP-only access (also a prerequisite for any future ingress controller)
+  - [ ] Reserve `192.168.1.240–192.168.1.249` on the router (DHCP exclusion). Those addresses were free as of a 2026-10-16 ping sweep, but a future DHCP lease would cause an IP conflict
+  - [ ] Flux: `HelmRepository` + pinned `HelmRelease` for MetalLB; `metallb-system` namespace labelled `pod-security.kubernetes.io/enforce: privileged` for the speaker
+  - [ ] `IPAddressPool` for the reserved block + `L2Advertisement` (L2 mode; kube-proxy here runs nftables, so `strictARP` isn't needed — that's an IPVS-only requirement)
+  - [ ] Flip Grafana's service to `LoadBalancer` to exercise it (or stay ClusterIP until an ingress controller exists)
+
 ## Hardware
 
 Each node is an Optiplex 3070 and currently has:
