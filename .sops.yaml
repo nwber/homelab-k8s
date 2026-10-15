@@ -1,0 +1,13 @@
+# SOPS configuration: any manifest matching *.sops.yaml is encrypted with the
+# age key below. Only data/stringData are encrypted so that kind/apiVersion/
+# metadata stay readable for kustomize and Flux.
+#
+# The matching PRIVATE key lives:
+#   - locally at ~/.config/sops/age/keys.txt (sops default lookup path)
+#   - in-cluster as Secret flux-system/sops-age, data key `age.agekey`
+#     (used by kustomize-controller, wired via the flux-system Kustomization)
+# Back it up somewhere safe — without it the encrypted values are unrecoverable.
+creation_rules:
+  - path_regex: \.sops\.yaml$
+    encrypted_regex: ^(data|stringData)$
+    age: age142x2u7a9ssh07kl5zu5753czf4zrlm6ae75ejkmznmucst084sdscaw80j
