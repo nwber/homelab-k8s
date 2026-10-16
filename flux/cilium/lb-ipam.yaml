@@ -1,0 +1,35 @@
+---
+# LB IPAM pool: addresses Cilium may hand to Service type=LoadBalancer and to
+# the Gateway. Must live in the same L2 segment as the nodes, since the L2
+# announcement policy below answers ARP for these on the node NICs.
+#
+# TEMPORARY: the nodes are still on 192.168.1.0/24, so this pool is in that
+# subnet (same block MetalLB was going to use). After the move to the new
+# 192.168.2.0/24 network, replace with e.g.
+#   192.168.2.240 - 192.168.2.250
+# and re-point the Gateway address in flux/gateway/gateway.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: homelab
+spec:
+  blocks:
+    - start: 192.168.1.244
+      stop: 192.168.1.249
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: homelab
+spec:
+  # The control-plane node is excluded from external load balancing
+  # (node.kubernetes.io/exclude-from-external-load-balancers), so let a worker
+  # own the VIP.
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: DoesNotExist
+  # Announce on the physical NIC only.
+  interfaces:
+    - ^enp.+$
+  loadBalancerIPs: true

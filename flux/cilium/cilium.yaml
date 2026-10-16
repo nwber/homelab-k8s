@@ -1,0 +1,111 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cilium
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: oci://quay.io/cilium/charts/cilium
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: 1.20.3
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cilium
+  namespace: flux-system
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: cilium
+  dependsOn:
+    # The chart renders the `cilium` GatewayClass, so the Gateway API CRDs
+    # must exist first.
+    - name: gateway-api-crds
+      namespace: flux-system
+  install:
+    timeout: 15m
+  interval: 30m0s
+  releaseName: cilium
+  targetNamespace: kube-system
+  upgrade:
+    timeout: 15m
+  # NOTE: during the flannel -> Cilium swap this release was first installed
+  # out-of-band (kube-proxy is off and nothing can schedule before Cilium is
+  # running, so Flux cannot be the one to bootstrap it), then adopted by this
+  # HelmRelease. Keep the values here identical to what was installed.
+  values:
+    # ---- Talos specifics (Talos "Deploy Cilium CNI" guide) ----
+    # Talos allocates the per-node pod CIDRs (KubeNetworkConfig podSubnets).
+    ipam:
+      mode: kubernetes
+    # kube-proxy is disabled in the machine config: Cilium replaces it, which
+    # is also a hard requirement for Cilium's Gateway API support.
+    kubeProxyReplacement: true
+    # Reach the API server through Talos KubePrism (localhost:7445) instead of
+    # the service IP, which does not exist until Cilium is up.
+    k8sServiceHost: localhost
+    k8sServicePort: 7445
+    # Talos provides cgroupv2 + bpffs itself.
+    cgroup:
+      autoMount:
+        enabled: false
+      hostRoot: /sys/fs/cgroup
+    securityContext:
+      capabilities:
+        # Talos forbids loading kernel modules from workloads, so SYS_MODULE
+        # must be dropped from the chart's default capability set.
+        ciliumAgent:
+          - CHOWN
+          - KILL
+          - NET_ADMIN
+          - NET_RAW
+          - IPC_LOCK
+          - SYS_ADMIN
+          - SYS_RESOURCE
+          - DAC_OVERRIDE
+          - FOWNER
+          - SETGID
+          - SETUID
+        cleanCiliumState:
+          - NET_ADMIN
+          - SYS_ADMIN
+          - SYS_RESOURCE
+
+    # ---- L2 announcements + LB IPAM (MetalLB's job, done by the CNI) ----
+    l2announcements:
+      enabled: true
+      # Tighter leases: failover in 2-4s instead of 10-20s. Cheap at this size.
+      leaseDuration: 3s
+      leaseRenewDeadline: 1s
+      leaseRetryPeriod: 200ms
+    k8sClientRateLimit:
+      # L2 announcements generate lease churn; the default 5qps is tight.
+      qps: 20
+      burst: 40
+
+    # ---- Gateway API (Envoy Gateway's job, done by the CNI) ----
+    gatewayAPI:
+      enabled: true
+      enableAlpn: true
+      enableAppProtocol: true
+
+    # ---- metrics for the existing kube-prometheus-stack ----
+    # trustCRDsExist skips the chart's CRD check (monitoring.coreos.com is
+    # installed, and it lets `helm template` render the same output).
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        trustCRDsExist: true
+    operator:
+      replicas: 1
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+          trustCRDsExist: true
