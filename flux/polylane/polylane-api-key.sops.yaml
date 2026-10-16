@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: polylane-api-key
+    namespace: polylane
+type: Opaque
+stringData:
+    api-key: ENC[AES256_GCM,data:hj+SFwqRnnV+1d0dEeP9XyoKBNlnLknOMMl/oeLrQSUYUsy+crhW885/KMwI/LS1vvIv8mTG3EJvSfgMVBoiXdQukA==,iv:72bMkI6j9+PcJ4c/Wp9KdomN2Dib7IMrU1sojd4lOEY=,tag:h9nB5u3PzSIP/4IGWzCOMw==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBFWmFGMWp0QXdiektNbXNk
+            QkM3YW4yRmJuLzlKMW1KQ3U3QlhXMFArbW5zCjE1YXRLMTFENE9oY0labjZWSWVw
+            anRSY21nT0tWaGl5UU8xQVMwa2xKM2sKLS0tIEs4VEhROXcyYThjM1BqSDVUSTc3
+            bmQwQUQxSUJTTFh3ZjR6d0VzdVdRNjgKP5BYqkBDwJUIjetf5C9aSSBIAARkXSsk
+            sIloe1YErDf4jK8ImSih2G3fBkW0GAsxhNWibREW+MYzTrcdPyw1Iw==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age142x2u7a9ssh07kl5zu5753czf4zrlm6ae75ejkmznmucst084sdscaw80j
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-16T17:46:20Z"
+    mac: ENC[AES256_GCM,data:i1ElIAyPLO8m+p1KBtyIcjZjhfvVXjbx7c6NPeRlDr1ezVlLwsKykv4AAIEcGxesb5Qg8pa97HbKcGCJSi2FlxZPIYm7zxhm8H1MDXfSpOi1B4rNvpm5tC/WICY+UA0LlkvBl+Q5Jj7M2yydENgiv7EJspZeLlOgC84oHjmhr9Y=,iv:/YZ+UyTfPGwQkY1XMBGsZU0fq7sTAsoOm+I+MCuYlrA=,tag:tTdFCjeZZx8t56mGPK+EPg==,type:str]
+    version: 3.13.3
