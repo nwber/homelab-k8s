@@ -29,10 +29,10 @@ spec:
   # The chart renders the `cilium` GatewayClass, so the Gateway API CRDs from
   # the flux/gateway-api Kustomization must exist before/with this release.
   # HelmRelease.dependsOn only accepts HelmReleases (a Kustomization reference
-  # fails with "helmreleases ... not found"), so this is documented rather
-  # than enforced: on a fresh cluster the release may race the CRDs and then
-  # recover on the retry below.
-  retryInterval: 2m0s
+  # fails with "helmreleases ... not found"), so the ordering is documented
+  # rather than enforced: on a fresh cluster, apply
+  # `kubectl apply -f flux/gateway-api/gateway-api-crds.yaml` once (or wait
+  # for the root Kustomization to retry) before this release can go Ready.
   targetNamespace: kube-system
   upgrade:
     timeout: 15m
