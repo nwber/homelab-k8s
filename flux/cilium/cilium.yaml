@@ -22,15 +22,17 @@ spec:
   chartRef:
     kind: OCIRepository
     name: cilium
-  dependsOn:
-    # The chart renders the `cilium` GatewayClass, so the Gateway API CRDs
-    # must exist first.
-    - name: gateway-api-crds
-      namespace: flux-system
   install:
     timeout: 15m
   interval: 30m0s
   releaseName: cilium
+  # The chart renders the `cilium` GatewayClass, so the Gateway API CRDs from
+  # the flux/gateway-api Kustomization must exist before/with this release.
+  # HelmRelease.dependsOn only accepts HelmReleases (a Kustomization reference
+  # fails with "helmreleases ... not found"), so this is documented rather
+  # than enforced: on a fresh cluster the release may race the CRDs and then
+  # recover on the retry below.
+  retryInterval: 2m0s
   targetNamespace: kube-system
   upgrade:
     timeout: 15m
