@@ -8,20 +8,22 @@ metadata:
 # outbound-only Cloudflare Tunnel (no inbound ports, no exec, no Secret
 # access). The agent registers the cluster with Polylane once, then Polylane
 # syncs workloads and serves agent queries (logs, events, topology).
+#
+# NOTE: fetched via HelmRepository (type: oci) + chart.spec rather than
+# OCIRepository + chartRef. With an OCIRepository source, helm-controller
+# appends the OCI digest to the chart version (`0.2.3+f3117e657752`) to detect
+# mutable tags; this chart renders .Chart.Version into its labels, and `+` is
+# not a legal label character, so every resource fails server-side apply
+# validation. HelmRepository sources are exempt from that digest tracking.
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: OCIRepository
+kind: HelmRepository
 metadata:
-  name: polylane-k8s
+  name: polylane
   namespace: flux-system
 spec:
+  type: oci
   interval: 1h0m0s
-  url: oci://ghcr.io/coreplanelabs/charts/polylane-k8s
-  layerSelector:
-    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
-    operation: copy
-  # Pin the chart version; bump deliberately.
-  ref:
-    tag: "0.2.3"
+  url: oci://ghcr.io/coreplanelabs/charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -29,9 +31,14 @@ metadata:
   name: polylane-k8s
   namespace: flux-system
 spec:
-  chartRef:
-    kind: OCIRepository
-    name: polylane-k8s
+  chart:
+    spec:
+      chart: polylane-k8s
+      sourceRef:
+        kind: HelmRepository
+        name: polylane
+      # Pin the chart version; bump deliberately.
+      version: "0.2.3"
   install:
     createNamespace: true
   interval: 30m0s
