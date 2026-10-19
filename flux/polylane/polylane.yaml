@@ -50,6 +50,17 @@ spec:
     # out of both plaintext git and Helm release storage.
     apiKey:
       existingSecret: polylane-api-key
+    # The agent image is pinned by digest instead of following the chart
+    # version. Chart 0.2.3 (the latest release) ships agent 2026.7.2, which
+    # logs "Your version 2026.7.2 is outdated. We recommend upgrading it to
+    # 2026.10.1" on every start; upstream has not cut a chart release with a
+    # newer agent, so the digest below points at the 2026-10-15 agent build
+    # (revision d62c11cc) until 0.2.4+ ships.
+    #
+    # Drop this block (and let the tag follow the chart again) when the
+    # chart release catches up.
+    image:
+      digest: sha256:eb5d8a1297201df1454e3f1e35f417f2b70444f5d8d75dfdfd7018c8bc85575d
     config:
       cluster_name: homelab
     # Scrape the agent's metrics with the existing kube-prometheus-stack
