@@ -16,8 +16,9 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
 
 - Talos is API-only — no SSH, no shell. Every operation goes through `talosctl`,
   authenticated with mutual TLS via a `talosconfig` client config.
-- Cluster: one control plane + two workers, Talos v1.14.1, Kubernetes v1.37.0.
-  API endpoint `https://192.168.1.235:6443`.
+- Cluster: one control plane + three workers, Talos v1.14.1, Kubernetes v1.37.0.
+  API endpoint `https://192.168.1.235:6443`. Current nodes: `homelab-k8s-cp-0`,
+  `homelab-k8s-worker-0`, `homelab-k8s-worker-1`, `homelab-k8s-worker-2`.
 - Machine configs are **not** in this repo. They live in the `homelab` repo
   (`talos/controlplane.yaml`, `talos/worker.yaml`, `talos/talosconfig`), which is
   the source of truth for node-level config. This repo (`homelab-k8s`) is the
@@ -35,6 +36,14 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
   Talos, not the media's.
 - **Change config in git first.** Edit the machine config in the `homelab` repo,
   commit, then apply. Never hand-edit a live node.
+- **`worker.yaml` is worker-0's config, not a template for all workers.** It
+  carries `hostname: homelab-k8s-worker-0`. Workers 1 and 2 have their own
+  hostnames applied out-of-band, and that fact is not recorded in the `homelab`
+  repo. Applying the same file to every worker makes them all register as
+  `homelab-k8s-worker-0`: the node identities collide, the kubelet stops
+  posting node status and the lease update fights (hit 2026-10-17 during the
+  Cilium CNI swap). Rewrite the hostname per node — the same way
+  `gen-configs.sh` does — before applying. See BER-136.
 - **Never assume a node's role or IP.** Hostnames are auto-generated and change
   on reinstall; read the IP off the console dashboard or find it with
   `nmap -sn 192.168.1.0/24`.
