@@ -1,3 +1,11 @@
+# NOTE: this manifest lives OUTSIDE ./flux so the root Kustomization does not
+# apply it. Its ServiceMonitor needs CRDs that ship with the
+# kube-prometheus-stack HelmRelease; on a fresh cluster the root apply must
+# not include it (the dry-run would fail with "no matches for kind
+# ServiceMonitor" before the HelmRelease ever runs). It is reconciled by the
+# `talos-metrics` Kustomization in flux/talos-metrics/, which retries until
+# the monitoring CRDs exist.
+#
 # Talos exposes node_exporter-compatible metrics on every node at :9100
 # (unauthenticated, bound to the node network — no exporter pod required).
 #

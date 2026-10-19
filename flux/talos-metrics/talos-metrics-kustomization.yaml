@@ -1,0 +1,24 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: talos-metrics
+  namespace: flux-system
+spec:
+  # The manifests live in ./manifests/talos-metrics (outside ./flux) so the
+  # root Kustomization does not pick them up: the ServiceMonitor's CRDs ship
+  # with the kube-prometheus-stack HelmRelease, and on a fresh cluster the
+  # root apply would otherwise fail its dry-run ("no matches for kind
+  # ServiceMonitor") before the HelmRelease ever runs.
+  #
+  # A dependsOn is not possible (Kustomization.dependsOn only accepts
+  # Kustomizations, and the CRDs come from a HelmRelease), so this
+  # Kustomization simply retries until the CRDs exist.
+  interval: 10m0s
+  path: ./manifests/talos-metrics
+  prune: true
+  retryInterval: 2m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  timeout: 3m0s
