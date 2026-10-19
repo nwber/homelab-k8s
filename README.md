@@ -7,6 +7,21 @@
 - kube-prometheus-stack
 - More on the way!
 
+## Bootstrap (fresh cluster)
+
+See the `homelab` repo for the Talos machine configs. On a bare cluster:
+
+1. Install Cilium out-of-band before `flux bootstrap`: with `cni: none` and
+   kube-proxy off, nothing can schedule — not even Flux — until a CNI is
+   running (keep the values identical to `flux/cilium/cilium.yaml`).
+2. `flux bootstrap` with `./flux` as the sync path is then enough:
+   - Gateway API CRDs are vendored in `flux/gateway-api/crds/` and applied in
+     the same revision as the `Gateway`/`HTTPRoute` objects that need them
+     (see `flux/gateway-api/README.md`).
+   - Manifests whose CRDs come from a HelmRelease (e.g. the `talos-metrics`
+     ServiceMonitor) live outside `./flux` in `manifests/` and are applied by
+     their own Kustomizations, which retry until the CRDs exist.
+
 ## Hardware
 
 Each node is an Optiplex 3070 and currently has:
