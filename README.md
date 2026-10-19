@@ -4,8 +4,36 @@
 
 - Talos Linux
 - Flux
-- kube-prometheus-stack
+- local-path-provisioner (default StorageClass)
+- kube-prometheus-stack (Prometheus, Alertmanager, Grafana)
+- Cilium (CNI, load balancer, Gateway API) + Envoy
+- podinfo (test workload)
+- Polylane agent (read-only Kubernetes observability)
 - More on the way!
+
+## TODO
+
+- [ ] **Wildcard DNS for the services** — point a wildcard at the Gateway IP (BER-134)
+  - The Gateway is at `192.168.1.244` today; it moves to `192.168.2.240` with the
+    192.168.2.0/24 network change
+  - UniFi UDR7: Network 9.4: Settings > Policy Table > Create New Policy > DNS
+    (9.3 and earlier: Settings > Networks > ... > Local DNS Records). Wildcards
+    reportedly work even though the UI does not advertise them
+  - Then give the HTTPRoutes real `hostnames:` instead of the catch-all to Grafana
+- [ ] **Per-worker Talos machine configs** (BER-136) — `talos/worker.yaml` in the
+  `homelab` repo is worker-0's config, not a template for all workers
+  - Generate one config per worker, or document the per-node apply procedure
+  - Guard: after `apply-config`, assert the reported hostname still matches the
+    node's existing Node object
+- [ ] **UniFi firewall rules** for selective access between 192.168.1.0/24 and
+  192.168.2.0/24 (BER-135)
+- [ ] **IoT devices → Prometheus → Grafana** (BER-18) — Litter Robot 4, Tapo smart
+  plugs, Bird Buddy, Roomba
+- [ ] **Power draw measurement** (BER-94, BER-95) — measure the real draw of the
+  cluster and get it into Grafana
+
+> LoadBalancer IPs are already handled by Cilium's LB IPAM (L2 announcements), so
+> MetalLB is not needed.
 
 ## Bootstrap (fresh cluster)
 

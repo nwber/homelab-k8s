@@ -1,0 +1,89 @@
+name: ci
+
+# The repo has no other automated checks yet: everything else is validated
+# by the cluster itself, when Flux applies a revision.
+#
+# These three jobs are the checks that can run without a cluster:
+#   secrets  - gitleaks, same tool and config as the local pre-commit hook
+#   lint     - yamllint over every YAML file
+#   manifests- kubeconform against the upstream schemas for the built-in
+#              resource kinds
+#
+# Custom resources (Flux, Cilium, Prometheus, Gateway API) have no published
+# JSON schema, so they are skipped by kubeconform. Those are validated by the
+# cluster: Flux reports a bad manifest in the Kustomization's status.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # gitleaks scans the history, not just the tip.
+          fetch-depth: 0
+      - name: install gitleaks
+        run: |
+          curl -sSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
+          tar xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+      - name: scan
+        # Same tool and config as .githooks/pre-commit: a secret that would
+        # be blocked locally is blocked here too.
+        run: gitleaks detect --source . --config .gitleaks.toml --redact --no-banner
+
+  lint:
+    name: yaml lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install yamllint
+      - run: yamllint -c .yamllint .
+
+  manifests:
+    name: manifest validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: install kubeconform
+        run: |
+          curl -sSL -o kubeconform.tar.gz \
+            "https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz"
+          tar xzf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+      - name: validate
+        # *.sops.yaml is skipped: its values are SOPS ciphertext, not the
+        # plaintext the schema expects.
+        run: |
+          git ls-files '*.yaml' ':!*.sops.yaml' \
+            | xargs -n1 kubeconform -ignore-missing-schemas -strict -summary
+
+  sops:
+    name: sops integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: every *.sops.yaml is encrypted
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in $(git ls-files '*.sops.yaml'); do
+            # The repo-root .sops.yaml is the sops *config* (age recipients),
+            # not an encrypted file.
+            [ "$f" = ".sops.yaml" ] && continue
+            if ! grep -q '^sops:' "$f"; then
+              echo "::error file=$f::no sops: metadata - is this file encrypted?"
+              fail=1
+            fi
+          done
+          exit $fail
