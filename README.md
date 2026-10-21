@@ -10,6 +10,7 @@
 - Loki + Alloy (log aggregation)
 - podinfo (test workload)
 - Polylane agent (read-only Kubernetes observability)
+- Tailscale operator (cluster ⇄ tailnet)
 - RustFS (S3-compatible object storage, 3 nodes / 3 drives)
 - More on the way!
 
@@ -35,6 +36,14 @@
   192.168.2.0/24 (BER-135)
 - [ ] **IoT devices → Prometheus → Grafana** (BER-18) — Litter Robot 4, Tapo smart
   plugs, Bird Buddy, Roomba
+- [ ] **Tailnet access to the cluster** — the Tailscale operator is installed
+  (see `flux/tailscale/README.md`); what is still missing:
+  - A `Connector` advertising the cluster pod CIDR (`10.244.0.0/16`) and
+    service CIDR (`10.96.0.0/12`), so tailnet devices can reach workloads
+    directly. Its CRD ships with the operator's HelmRelease, so the manifest
+    has to live in `manifests/tailscale/` (like `manifests/talos-metrics/`)
+  - Optionally, exposing a service to the tailnet with a Tailscale ingress
+    proxy (Grafana is the obvious candidate)
 - [ ] **Power draw measurement** (BER-94, BER-95) — measure the real draw of the
   cluster and get it into Grafana
 
