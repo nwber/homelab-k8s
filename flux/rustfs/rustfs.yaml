@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rustfs
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: rustfs
+  namespace: flux-system
+spec:
+  type: default
+  interval: 1h0m0s
+  url: https://charts.rustfs.com/
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rustfs
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: rustfs
+      sourceRef:
+        kind: HelmRepository
+        name: rustfs
+      # Pin the chart version; bump deliberately.
+      version: "1.0.3"
+  install:
+    createNamespace: true
+  interval: 30m0s
+  releaseName: rustfs
+  targetNamespace: rustfs
+  values:
+    # One pod per worker, one drive each. The chart's defaults are
+    # replicaCount=4 with drivesPerNode inferred as 4 (a legacy 4x4 layout =
+    # 16 drives); this cluster has three schedulable nodes (the control plane
+    # is tainted), so 3x1 is the topology that fits.
+    #
+    # The chart's required pod anti-affinity (topologyKey
+    # kubernetes.io/hostname) keeps one pod per node.
+    replicaCount: 3
+    drivesPerNode: 1
+    mode:
+      distributed:
+        enabled: true
+      standalone:
+        enabled: false
+    # The root credentials live SOPS-encrypted in git
+    # (rustfs-credentials.sops.yaml). The chart refuses to render with the
+    # well-known rustfsadmin/rustfsadmin defaults, so a Secret we control is
+    # the clean way in.
+    secret:
+      existingSecret: rustfs-credentials
+    # The chart turns off its local-endpoint injection whenever
+    # secret.existingSecret is set, because it cannot see what is inside the
+    # Secret. Our Secret only holds credentials, so the injection is safe to
+    # re-enable: it gives each pod a DNS-free identity and avoids the bounded
+    # DNS locality wait (180s) at startup.
+    localEndpointHost:
+      autoInject: true
+    # No Ingress controller in this cluster; exposure goes through the
+    # Gateway API (see rustfs-gateway.yaml and rustfs-httproute.yaml).
+    ingress:
+      enabled: false
+    gatewayApi:
+      enabled: false
+    storageclass:
+      name: local-path
+      dataStorageSize: 20Gi
+    config:
+      rustfs:
+        region: us-east-1
+        # Logs go to stdout, not to a file: an empty log directory puts
+        # rustfs in stdout-only mode. That keeps `kubectl logs` and the
+        # Polylane agent working, and saves a second PVC per pod.
+        #
+        # obs_environment stays "development" on purpose: "production" means
+        # file-only logging, which with no log directory would silence the
+        # pods entirely.
+        obs_log_directory: ""
+        obs_environment: development
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
