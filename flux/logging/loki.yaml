@@ -1,0 +1,115 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+  # No pod-security.kubernetes.io/enforce label on purpose: Alloy needs a
+  # hostPath volume (/var/log) to read the node's container logs, and
+  # HostPath Volumes are forbidden by the baseline policy.
+---
+# Grafana's chart repository (Loki + Alloy live here, not on the
+# prometheus-community one used by the kube-prometheus-stack release).
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: grafana
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://grafana.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: loki
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: loki
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+      version: "7.3.0"
+  interval: 30m0s
+  releaseName: loki
+  targetNamespace: logging
+  install:
+    createNamespace: true
+  values:
+    # Single binary: one pod running every Loki module, with the filesystem
+    # object store on a local-path volume. A homelab produces far too little
+    # log volume to justify the chart's default SimpleScalable mode (3 write +
+    # 3 read + 3 backend pods), and there is no object storage to point at.
+    deploymentMode: SingleBinary
+    loki:
+      # One tenant. Grafana would otherwise have to send an X-Scope-OrgID
+      # header on every query, and Alloy one on every push.
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      schemaConfig:
+        configs:
+          - from: "2024-04-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: loki_index_
+              period: 24h
+      storage:
+        type: filesystem
+      limits_config:
+        # 30 days. The compactor deletes older chunks; without it Loki keeps
+        # everything until the volume fills.
+        retention_period: 720h
+        # Grafana queries from the last hour by default, so a 7 day cap on
+        # rejected samples (the chart default) is plenty.
+        reject_old_samples: true
+        reject_old_samples_max_age: 168h
+      compactor:
+        retention_enabled: true
+        delete_request_store: filesystem
+      pattern_ingester:
+        enabled: false
+    singleBinary:
+      replicas: 1
+      persistence:
+        enabled: true
+        size: 20Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          # Logs are the only thing on this pod; keep it from being able to
+          # take the whole 7.6Gi node with it.
+          memory: 1Gi
+    # The other deployment modes stay at zero replicas (the chart defaults
+    # them to 3 each).
+    read:
+      replicas: 0
+    write:
+      replicas: 0
+    backend:
+      replicas: 0
+    # Memcached caches: not worth two more pods for a homelab.
+    chunksCache:
+      enabled: false
+    resultsCache:
+      enabled: false
+    # The nginx gateway and the canary are extra moving parts; Grafana and
+    # Alloy talk to the `loki` service on 3100 directly.
+    gateway:
+      enabled: false
+    lokiCanary:
+      enabled: false
+    test:
+      enabled: false
+    monitoring:
+      serviceMonitor:
+        enabled: true
+      rules:
+        enabled: true
+      dashboards:
+        enabled: true

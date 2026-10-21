@@ -1,0 +1,24 @@
+---
+# Loki as a Grafana datasource, without touching the kube-prometheus-stack
+# HelmRelease: the Grafana pod runs the k8s-sidecar datasource watcher, which
+# picks up any ConfigMap labelled `grafana_datasource: "1"` and reloads the
+# datasources without a restart. This lives in `monitoring` because that is
+# the namespace Grafana is guaranteed to watch.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-datasource
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  loki-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki.logging.svc.cluster.local:3100
+        jsonData:
+          maxLines: 1000
+        editable: false
