@@ -7,9 +7,11 @@
 - local-path-provisioner (default StorageClass)
 - kube-prometheus-stack (Prometheus, Alertmanager, Grafana)
 - Cilium (CNI, load balancer, Gateway API) + Envoy
+- Loki + Alloy (log aggregation)
 - podinfo (test workload)
 - Polylane agent (read-only Kubernetes observability)
 - Tailscale operator (cluster ⇄ tailnet)
+- RustFS (S3-compatible object storage, 3 nodes / 3 drives)
 - More on the way!
 
 ## TODO
@@ -21,6 +23,10 @@
     (9.3 and earlier: Settings > Networks > ... > Local DNS Records). Wildcards
     reportedly work even though the UI does not advertise them
   - Then give the HTTPRoutes real `hostnames:` instead of the catch-all to Grafana
+    (RustFS needs its own record: it has a second Gateway IP, 192.168.1.245)
+- [ ] **RustFS metrics into Grafana** — RustFS only exports Prometheus metrics
+  over OTLP (`RUSTFS_OBS_ENDPOINT`), so scraping it needs an OpenTelemetry
+  collector with a Prometheus exporter in front of kube-prometheus-stack
 - [ ] **Per-worker Talos machine configs** (BER-136) — `talos/worker.yaml` in the
   `homelab` repo is worker-0's config, not a template for all workers
   - Generate one config per worker, or document the per-node apply procedure

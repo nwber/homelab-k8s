@@ -1,0 +1,40 @@
+---
+# A dedicated Gateway for RustFS, in the rustfs namespace (the app owns its
+# own ingress, like the rest of its resources).
+#
+# It is NOT the shared `homelab` Gateway: Cilium builds one route table per
+# Gateway, and the shared one already carries Grafana's catch-all on "/".
+# A second "/" route there would be merged into Grafana's route as a
+# weighted (random) backend, so Grafana and S3 would answer each other's
+# requests. A separate Gateway keeps its own route table.
+#
+# The address is pinned so the endpoint never changes and DNS records can
+# point at it. It is allocated by Cilium's LB IPAM from the
+# CiliumLoadBalancerIPPool in flux/cilium/lb-ipam.yaml and announced on the
+# LAN via L2 ARP.
+#
+# TEMPORARY: 192.168.1.245 until the cluster moves to the 192.168.2.0/24
+# network, then re-point to e.g. 192.168.2.241.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rustfs
+  namespace: rustfs
+spec:
+  gatewayClassName: cilium
+  addresses:
+    - type: IPAddress
+      value: 192.168.1.245
+  listeners:
+    - name: http
+      protocol: HTTP
+      # The S3 port. The console is served from the same port under the
+      # /rustfs/console prefix (see rustfs-httproute.yaml).
+      port: 9000
+      allowedRoutes:
+        namespaces:
+          # Only the rustfs namespace may attach routes to this Gateway.
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: rustfs
