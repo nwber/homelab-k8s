@@ -7,6 +7,7 @@
 - local-path-provisioner (default StorageClass)
 - kube-prometheus-stack (Prometheus, Alertmanager, Grafana)
 - Cilium (CNI, load balancer, Gateway API) + Envoy
+- Loki + Alloy (log aggregation)
 - podinfo (test workload)
 - Polylane agent (read-only Kubernetes observability)
 - RustFS (S3-compatible object storage, 3 nodes / 3 drives)
