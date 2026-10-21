@@ -1,11 +1,17 @@
 ---
-# The S3 API. It has to own "/" on this Gateway: the S3 API is path-based
+# The S3 API. It has to own "/" on the Gateway: the S3 API is path-based
 # (/<bucket>/<key>), so it cannot live behind a path prefix.
 #
-# No hostnames: DNS for the Gateway IP does not exist yet (BER-134).
-# Without a hostname the route matches any Host header, so the endpoint is
-# reachable at http://192.168.1.245:9000. Add `hostnames:` once the DNS
-# record exists.
+# The hostname is what makes the endpoint a real S3 endpoint: it is what
+# external-dns resolves (s3.k8s.nbergeron.dev, through the
+# *.k8s.nbergeron.dev wildcard record), and it is what a client sends in
+# the Host header. A request that does not carry it does not match this
+# route.
+#
+# The hostname is also what keeps this route apart from the Grafana
+# catch-all on the same Gateway: Cilium merges routes with identical
+# matches into a single weighted cluster, so two "/" routes without
+# hostnames would answer each other's requests at random.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -13,7 +19,10 @@ metadata:
   namespace: rustfs
 spec:
   parentRefs:
-    - name: rustfs
+    - name: homelab
+      namespace: gateway
+  hostnames:
+    - s3.k8s.nbergeron.dev
   rules:
     - matches:
         - path:
@@ -23,17 +32,15 @@ spec:
         - name: rustfs-svc
           port: 9000
 ---
-# The admin console. Its UI and static assets are served by the console
-# port (9001) under /rustfs/console/, so the route matches that prefix
-# and the console backend.
-#
-# The console's own API calls (/rustfs/admin/v3/...) are served by BOTH
-# ports, so they fall through to the S3 route above and reach the admin
-# API without needing a route of their own.
+# The admin console: its UI and static assets under /rustfs/console/, and
+# its API under /rustfs/admin/v3/. One prefix covers both, and both live on
+# the console port (9001).
 #
 # The prefix has to differ from the S3 route's: Cilium merges routes with
-# identical matches into a single weighted cluster, which would send
-# console requests to the S3 API (and the other way round) at random.
+# identical matches into a single weighted cluster, which would send console
+# requests to the S3 API (and the other way round) at random. Different
+# hostnames would also keep them apart, but the prefix is what separates the
+# two backends on the same hostname.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -41,12 +48,15 @@ metadata:
   namespace: rustfs
 spec:
   parentRefs:
-    - name: rustfs
+    - name: homelab
+      namespace: gateway
+  hostnames:
+    - console.k8s.nbergeron.dev
   rules:
     - matches:
         - path:
             type: PathPrefix
-            value: /rustfs/console
+            value: /rustfs
       backendRefs:
         - name: rustfs-svc
           port: 9001

@@ -20,8 +20,8 @@
   - UniFi UDR7: Network 9.4: Settings > Policy Table > Create New Policy > DNS
     (9.3 and earlier: Settings > Networks > ... > Local DNS Records). Wildcards
     reportedly work even though the UI does not advertise them
-  - Then give the HTTPRoutes real `hostnames:` instead of the catch-all to Grafana
-    (RustFS needs its own record: it has a second Gateway IP, 192.168.1.245)
+  - This is the LAN resolver; the public DNS record for the same names is
+    managed by external-dns (see `flux/cloudflare/`)
 - [ ] **RustFS metrics into Grafana** — RustFS only exports Prometheus metrics
   over OTLP (`RUSTFS_OBS_ENDPOINT`), so scraping it needs an OpenTelemetry
   collector with a Prometheus exporter in front of kube-prometheus-stack

@@ -5,8 +5,11 @@ chart from <https://charts.rustfs.com>.
 
 - `rustfs.yaml` — Namespace, HelmRepository, HelmRelease
 - `rustfs-credentials.sops.yaml` — root credentials, SOPS-encrypted
-- `rustfs-gateway.yaml` — the Gateway that fronts the S3 endpoint
 - `rustfs-httproute.yaml` — routes for the S3 endpoint and the admin console
+
+The endpoint is served through the shared `homelab` Gateway, so the whole
+cluster has one address and one port; the routes pick the backend by
+hostname.
 
 ## Topology
 
@@ -31,24 +34,22 @@ With three drives the usable capacity is roughly two thirds of the raw
 | What | Where |
 |------|-------|
 | S3 endpoint (in-cluster) | `http://rustfs-svc.rustfs.svc.cluster.local:9000` |
-| S3 endpoint (LAN) | `http://192.168.1.245:9000` |
-| Admin console (LAN) | `http://192.168.1.245:9000/rustfs/console/` |
+| S3 endpoint (LAN) | `http://s3.k8s.nbergeron.dev` |
+| Admin console (LAN) | `http://console.k8s.nbergeron.dev/rustfs/console/` |
 
-The LAN address is the RustFS Gateway IP (`rustfs-gateway.yaml`), announced
-on the LAN via Cilium's LB IPAM (L2 ARP). It is not a hostname yet: DNS for
-the Gateway IP does not exist (BER-134), so the routes deliberately omit
-`hostnames:` and match any `Host` header.
+Both names resolve to the shared Gateway (192.168.1.244, announced on the
+LAN via Cilium's LB IPAM) through the `*.k8s.nbergeron.dev` wildcard record
+that external-dns manages (see `flux/cloudflare/`). The Gateway routes on
+the hostname, so a request that does not carry it is not answered.
 
-The console is served from the S3 port under a path prefix because **Cilium
-builds one route table per Gateway** and merges routes with identical
-matches into a single weighted cluster. Two routes on "/" (S3 and console)
-would answer each other's requests at random. The console's own API calls
-(`/rustfs/admin/v3/...`) are served by both ports, so they fall through to
-the S3 route and still reach the admin API.
+The console is served under the /rustfs prefix because **Cilium builds one
+route table per Gateway** and merges routes with identical matches into a
+single weighted cluster: the S3 route owns "/" and the console route cannot
+own it as well. Different hostnames would also keep them apart, but the
+prefix is what separates the two backends.
 
-RustFS could not join the shared `homelab` Gateway for the same reason: that
-Gateway already carries Grafana's catch-all on "/", and a second "/" route
-would be merged into it.
+The routes could not join Grafana's catch-all on "/" for the same reason —
+that is what the hostnames are for.
 
 ## Credentials
 
