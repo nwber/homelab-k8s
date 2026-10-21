@@ -1,0 +1,74 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale
+---
+# The Tailscale Kubernetes operator joins the tailnet with an OAuth client
+# and manages the tailscale.com CRDs (Connector, ProxyClass, ProxyGroup,
+# DNSConfig, Recorder, Tailnet) plus the proxies it creates.
+#
+# The chart comes from the official Helm repository over HTTPS rather than
+# from an OCIRepository: with an OCIRepository source, helm-controller
+# appends the OCI digest to the chart version to detect mutable tags, and
+# that "+"-suffixed version ends up in the release metadata. An HTTP
+# HelmRepository keeps the version exactly "1.104.1".
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: tailscale
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  type: default
+  url: https://pkgs.tailscale.com/helmcharts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tailscale-operator
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: tailscale-operator
+      sourceRef:
+        kind: HelmRepository
+        name: tailscale
+      # Pin the chart version; bump deliberately. See flux/tailscale/README.md
+      # for the upgrade procedure (the image digests below move with it).
+      version: "1.104.1"
+  interval: 30m0s
+  install:
+    timeout: 10m
+    # The namespace is created by the Namespace object above, in the same
+    # revision, so the operator-oauth Secret has a namespace to live in.
+    createNamespace: false
+  releaseName: tailscale-operator
+  targetNamespace: tailscale
+  upgrade:
+    timeout: 10m
+  values:
+    # NOTE: no `oauth` block here on purpose. The chart mounts a Secret named
+    # "<fullname>-oauth" ("operator-oauth" with the chart's default names) when
+    # `oauth.clientId` is unset, and that Secret is applied by this
+    # Kustomization from flux/tailscale/operator-oauth.sops.yaml (SOPS
+    # encrypted). Setting oauth.clientId/clientSecret in the values would
+    # put the credentials in plaintext in the Helm release storage instead.
+    operatorConfig:
+      # The tailnet policy must own tag:k8s and tag:k8s-operator for the
+      # operator to manage its own device and the proxies it creates.
+      # See flux/tailscale/README.md.
+      defaultTags:
+        - tag:k8s-operator
+      # Pin the operator image by digest instead of following the chart's
+      # appVersion. Refresh it when the chart version is bumped:
+      #   docker buildx imagetools inspect tailscale/k8s-operator:v1.104.1
+      image:
+        digest: sha256:38351d6333edc490a832b27b244665d40f4a5fe1765ade76af2264c99dbbfe0e
+    proxyConfig:
+      # The proxy image is what the operator hands to the proxies it creates
+      # (ingress/egress proxies, connectors). Pinned for the same reason.
+      image:
+        digest: sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d
+      defaultTags: tag:k8s
