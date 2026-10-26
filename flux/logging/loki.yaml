@@ -3,9 +3,16 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: logging
-  # No pod-security.kubernetes.io/enforce label on purpose: Alloy needs a
-  # hostPath volume (/var/log) to read the node's container logs, and
-  # HostPath Volumes are forbidden by the baseline policy.
+  labels:
+    # The cluster enforces Pod Security `baseline` on every namespace that
+    # does not say otherwise (defaults in the Talos KubeAdmissionControlConfig,
+    # see the `homelab` repo), and `baseline` forbids hostPath volumes. Alloy
+    # needs a hostPath to read /var/log, so this namespace opts up to
+    # `privileged` — exactly like `monitoring`, which needs it for local-path.
+    #
+    # Do not remove this: without it the Alloy DaemonSet cannot create a
+    # single pod (FailedCreate: violates PodSecurity "baseline:latest").
+    pod-security.kubernetes.io/enforce: privileged
 ---
 # Grafana's chart repository (Loki + Alloy live here, not on the
 # prometheus-community one used by the kube-prometheus-stack release).

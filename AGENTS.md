@@ -73,6 +73,19 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
   ```bash
   kubectl label node <node-name> node-role.kubernetes.io/worker=""
   ```
+- **Pod Security defaults to `baseline`, not "off".** The Talos
+  `KubeAdmissionControlConfig` sets cluster-wide `enforce: baseline`,
+  `warn: restricted` for every namespace without an explicit label (only
+  `kube-system` is exempt). A namespace that needs a hostPath volume or runs as
+  root must opt up explicitly:
+  ```yaml
+  metadata:
+    labels:
+      pod-security.kubernetes.io/enforce: privileged
+  ```
+  `monitoring` and `logging` do exactly this. Without the label the pods are
+  never created — the DaemonSet/Deployment reports `FailedCreate: violates
+  PodSecurity "baseline:latest"` while the HelmRelease sits at `Stalled`.
 - **Secrets never go in this repo.** `controlplane.yaml`, `worker.yaml`, and
   `talosconfig` carry the cluster CA keys and tokens. They stay in the `homelab`
   repo and must not be committed unencrypted to anything public.
