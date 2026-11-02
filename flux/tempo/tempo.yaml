@@ -1,0 +1,92 @@
+---
+# Tempo (traces). Single binary, mirroring the old homelab1 Docker
+# container: OTLP receivers on grpc 4317 / http 4318, local filesystem
+# backend on a local-path PVC.
+#
+# Chart source note: the single-binary `tempo` chart was deprecated on the
+# old https://grafana.github.io/helm-charts repo (2026-01-30 repository
+# migration), and its authors moved it to the community fork, which keeps
+# maintaining it there (v3.x, Tempo app 3.1.1). Loki and Alloy are still
+# published on the old repo, so the existing `grafana` HelmRepository in
+# flux/logging/loki.yaml stays as it is.
+#
+# Nothing sends traces to it yet — it is here so Grafana finishes wired to
+# metrics + logs + traces, and the OpenCode ingest can point at the fixed
+# service host (http://tempo.logging.svc.cluster.local:4317/4318) when an
+# application moves over.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: grafana-community
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://grafana-community.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tempo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: tempo
+      sourceRef:
+        kind: HelmRepository
+        name: grafana-community
+      version: "3.2.1"
+  interval: 30m0s
+  releaseName: tempo
+  targetNamespace: logging
+  install:
+    createNamespace: true
+  values:
+    # Home-lab scale: one pod, one PVC, sane retention. Trace volume never
+    # comes close to logs; 10Gi of parquet blocks covers weeks even once a
+    # chatty workload lands here.
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+    tempo:
+      # The old Tempo had no retention configured — blocks piled up on
+      # disk. 14d is plenty for "what did that span look like" debugging
+      # and keeps the PVC single-digit GB.
+      retention: 336h
+      # Don't phone home (matches the Grafana/Loki stance in this repo).
+      reportingEnabled: false
+      # Receiver set stays at chart defaults, so OTLP keeps the ports the
+      # old Tempo listened on (grpc 4317 / http 4318).
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+    # Feed Tempo's own metrics back into Prometheus so it shows up on the
+    # self-monitoring dashboards (same pattern as the Loki chart release).
+    serviceMonitor:
+      enabled: true
+---
+# Tempo datasource for the Grafana sidecar (same pattern as
+# flux/logging/grafana-datasource.yaml). `uid: tempo` is pinned so the
+# migrated dashboards reference it deterministically — the old setup's
+# Tempo uid was P214B5B846CF3925F, remapped on import.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-datasource
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  tempo-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        access: proxy
+        uid: tempo
+        url: http://tempo.logging.svc.cluster.local:3200
+        editable: false

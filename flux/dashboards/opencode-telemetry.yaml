@@ -1,0 +1,269 @@
+---
+# Generated from the old homelab1 Grafana export (see README.md in this
+# directory). Re-generate by re-running the export, not by hand-editing this
+# JSON.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-opencode-telemetry
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: OpenCode
+data:
+  opencode-telemetry.json: |
+      {
+        "annotations": {
+          "list": [
+            {
+              "builtIn": 1,
+              "datasource": {
+                "type": "grafana",
+                "uid": "-- Grafana --"
+              },
+              "enable": true,
+              "hide": true,
+              "iconColor": "rgba(0, 211, 255, 1)",
+              "name": "Annotations & Alerts",
+              "type": "dashboard"
+            }
+          ]
+        },
+        "description": "OpenCode traces, AI calls, tool executions, and logs",
+        "editable": true,
+        "fiscalYearStartMonth": 0,
+        "graphTooltip": 0,
+        "liveNow": false,
+        "panels": [
+          {
+            "gridPos": {
+              "h": 3,
+              "w": 24,
+              "x": 0,
+              "y": 0
+            },
+            "id": 5,
+            "options": {
+              "code": {
+                "language": "plaintext",
+                "showLineNumbers": false,
+                "showMiniMap": false
+              },
+              "content": "OpenCode telemetry flows: opencode \u2192 Alloy (OTLP) \u2192 Tempo (traces) + Loki (logs). If panels are empty, widen the time range or check that the opencode-web service is running with OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318.",
+              "mode": "markdown"
+            },
+            "pluginVersion": "13.1.1",
+            "targets": [],
+            "title": "About",
+            "type": "text"
+          },
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "description": "All OpenCode traces ingested in the selected time range.",
+            "gridPos": {
+              "h": 12,
+              "w": 24,
+              "x": 0,
+              "y": 3
+            },
+            "id": 1,
+            "options": {
+              "spanFilters": {
+                "adhocFilters": [],
+                "criticalPath": false,
+                "criticalPathOnly": false,
+                "matchesOnly": false,
+                "serviceNameOperator": "=",
+                "spanNameOperator": "=",
+                "tags": [
+                  {
+                    "id": "4edd44a2-e45",
+                    "operator": "="
+                  }
+                ]
+              }
+            },
+            "pluginVersion": "13.1.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "tempo",
+                  "uid": "tempo"
+                },
+                "limit": 20,
+                "query": "{resource.service.name=\"opencode\"}",
+                "queryType": "traceql",
+                "refId": "A",
+                "tableType": "spans"
+              }
+            ],
+            "title": "Recent OpenCode Traces",
+            "type": "traces"
+          },
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "description": "AI SDK spans such as ai.streamText, ai.toolCall, and ai.streamText.doStream.",
+            "gridPos": {
+              "h": 12,
+              "w": 12,
+              "x": 0,
+              "y": 15
+            },
+            "id": 2,
+            "options": {
+              "spanFilters": {
+                "adhocFilters": [],
+                "criticalPath": false,
+                "criticalPathOnly": false,
+                "matchesOnly": false,
+                "serviceNameOperator": "=",
+                "spanNameOperator": "=",
+                "tags": [
+                  {
+                    "id": "ae12468e-d11",
+                    "operator": "="
+                  }
+                ]
+              }
+            },
+            "pluginVersion": "13.1.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "tempo",
+                  "uid": "tempo"
+                },
+                "limit": 20,
+                "query": "{resource.service.name=\"opencode\" && name=~\"ai.*\"}",
+                "queryType": "traceql",
+                "refId": "A",
+                "tableType": "spans"
+              }
+            ],
+            "title": "AI Calls",
+            "type": "traces"
+          },
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "description": "Tool executions including Tool.execute, ShellTool.*, and Plugin.trigger.",
+            "gridPos": {
+              "h": 12,
+              "w": 12,
+              "x": 12,
+              "y": 15
+            },
+            "id": 3,
+            "options": {
+              "spanFilters": {
+                "adhocFilters": [],
+                "criticalPath": false,
+                "criticalPathOnly": false,
+                "matchesOnly": false,
+                "serviceNameOperator": "=",
+                "spanNameOperator": "=",
+                "tags": [
+                  {
+                    "id": "9fd8eae0-893",
+                    "operator": "="
+                  }
+                ]
+              }
+            },
+            "pluginVersion": "13.1.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "tempo",
+                  "uid": "tempo"
+                },
+                "limit": 20,
+                "query": "{resource.service.name=\"opencode\" && name=~\"Tool.*|ShellTool.*|Plugin.trigger\"}",
+                "queryType": "traceql",
+                "refId": "A",
+                "tableType": "spans"
+              }
+            ],
+            "title": "Tool Calls",
+            "type": "traces"
+          },
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "description": "OpenCode application logs scraped by Alloy from ~/.local/share/opencode/log/opencode.log.",
+            "gridPos": {
+              "h": 12,
+              "w": 24,
+              "x": 0,
+              "y": 27
+            },
+            "id": 4,
+            "options": {
+              "dedupStrategy": "none",
+              "enableInfiniteScrolling": false,
+              "enableLogDetails": true,
+              "prettifyLogMessage": false,
+              "showControls": false,
+              "showFieldSelector": false,
+              "showLevel": true,
+              "showLogContextToggle": false,
+              "showTime": true,
+              "sortOrder": "Descending",
+              "timestampResolution": "ms",
+              "unwrappedColumns": false,
+              "wrapLogMessage": false
+            },
+            "pluginVersion": "13.1.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "expr": "{job=\"opencode\"}",
+                "refId": "A"
+              }
+            ],
+            "title": "OpenCode Logs",
+            "type": "logs"
+          }
+        ],
+        "preload": false,
+        "refresh": "5s",
+        "schemaVersion": 42,
+        "tags": [
+          "opencode"
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "timepicker": {
+          "refresh_intervals": [
+            "5s",
+            "10s",
+            "30s",
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "2h",
+            "1d"
+          ]
+        },
+        "timezone": "browser",
+        "title": "OpenCode Telemetry",
+        "uid": "opencode-telemetry"
+      }

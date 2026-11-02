@@ -8,6 +8,7 @@
 - kube-prometheus-stack (Prometheus, Alertmanager, Grafana)
 - Cilium (CNI, load balancer, Gateway API) + Envoy
 - Loki + Alloy (log aggregation)
+- Tempo (trace backend, single binary — nothing ships traces to it yet)
 - podinfo (test workload)
 - Polylane agent (read-only Kubernetes observability)
 - Tailscale operator (cluster ⇄ tailnet)

@@ -1,0 +1,1361 @@
+---
+# Generated from the old homelab1 Grafana export (see README.md in this
+# directory). Re-generate by re-running the export, not by hand-editing this
+# JSON.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-shepherd-prod
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Homelab
+data:
+  shepherd-prod.json: |
+      {
+        "editable": true,
+        "links": [
+          {
+            "title": "Shepherd - Dev",
+            "type": "link",
+            "url": "/d/ad59sff/shepherd-dev"
+          }
+        ],
+        "panels": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 0,
+              "y": 0
+            },
+            "id": 1,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "time() - container_start_time_seconds{name=\"shepherd-prod\"}",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Uptime",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 3,
+              "y": 0
+            },
+            "id": 2,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "changes(container_start_time_seconds{name=\"shepherd-prod\"}[$__range])",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Restarts (range)",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": null
+                          },
+                          {
+                            "color": "red",
+                            "value": 1
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 6,
+              "y": 0
+            },
+            "id": 3,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "increase(container_oom_events_total{name=\"shepherd-prod\"}[$__range])",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "OOM Events (range)",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 9,
+              "y": 0
+            },
+            "id": 4,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum(increase(http_server_duration_milliseconds_count{job=\"shepherd-production\"}[$__range]))",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Requests (range)",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 2
+                    },
+                    {
+                      "id": "thresholds",
+                      "value": {
+                        "mode": "absolute",
+                        "steps": [
+                          {
+                            "color": "green",
+                            "value": null
+                          },
+                          {
+                            "color": "orange",
+                            "value": 0.01
+                          },
+                          {
+                            "color": "red",
+                            "value": 0.05
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 12,
+              "y": 0
+            },
+            "id": 5,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum(rate(http_server_duration_milliseconds_count{job=\"shepherd-production\",http_status_code=~\"[45]..\"}[5m])) / sum(rate(http_server_duration_milliseconds_count{job=\"shepherd-production\"}[5m]))",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Error Rate (4xx/5xx)",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 15,
+              "y": 0
+            },
+            "id": 6,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "max(http_server_active_requests{job=\"shepherd-production\"})",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Active Requests",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "ms"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 1
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 18,
+              "y": 0
+            },
+            "id": 7,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "p95 Latency",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 5,
+              "w": 3,
+              "x": 21,
+              "y": 0
+            },
+            "id": 8,
+            "options": {
+              "colorMode": "value",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "labelMode": "auto",
+              "orientation": "horizontal",
+              "percentChangeColorMode": "standard",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "max(db_client_connections_usage{job=\"shepherd-production\"})",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "DB Pool Connections",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 0,
+              "y": 5
+            },
+            "id": 9,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (http_status_code) (rate(http_server_duration_milliseconds_count{job=\"shepherd-production\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{http_status_code}}",
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Request Rate by Status Code",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "ms"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 12,
+              "y": 5
+            },
+            "id": 10,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.5, sum by (le) (rate(http_server_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p50",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p95",
+                "range": true,
+                "refId": "B"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p99",
+                "range": true,
+                "refId": "C"
+              }
+            ],
+            "title": "HTTP Latency Percentiles",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 12
+            },
+            "id": 11,
+            "options": {
+              "legend": {
+                "calcs": [],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "topk(10, sum by (http_target, http_method) (rate(http_server_duration_milliseconds_count{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "{{http_method}} {{http_target}}",
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Request Rate by Endpoint",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "ms"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 12
+            },
+            "id": 12,
+            "options": {
+              "calculate": false,
+              "cellGap": 1,
+              "color": {
+                "exponent": 0.5,
+                "fill": "dark",
+                "mode": "scheme",
+                "reverse": false,
+                "scale": "exponential",
+                "scheme": "Oranges",
+                "steps": 64
+              },
+              "colorSpace": "sRGB",
+              "dataFormat": "tsbuckets",
+              "legend": {
+                "show": true
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (le) (rate(http_server_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m]))",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Latency Heatmap",
+            "type": "heatmap"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "ms"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 12
+            },
+            "id": 13,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.5, sum by (le) (rate(http_client_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p50",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(http_client_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p95",
+                "range": true,
+                "refId": "B"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(http_client_duration_milliseconds_bucket{job=\"shepherd-production\"}[5m])))",
+                "instant": false,
+                "legendFormat": "p99",
+                "range": true,
+                "refId": "C"
+              }
+            ],
+            "title": "Outbound Client Latency",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "bytes"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 0,
+              "y": 20
+            },
+            "id": 14,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum(rate(http_server_response_size_bytes_sum{job=\"shepherd-production\"}[5m])) / sum(rate(http_server_duration_milliseconds_count{job=\"shepherd-production\"}[5m]))",
+                "instant": false,
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Avg Response Size",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 12,
+              "x": 12,
+              "y": 20
+            },
+            "id": 15,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (state) (db_client_connections_usage{job=\"shepherd-production\"})",
+                "instant": false,
+                "legendFormat": "{{state}}",
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "DB Connection Pool Usage",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 3
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 27
+            },
+            "id": 16,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}}",
+                "range": true,
+                "refId": "A"
+              }
+            ],
+            "title": "Container: CPU Usage (cores)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "bytes"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 8,
+              "y": 27
+            },
+            "id": 17,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "max by (name) (container_memory_working_set_bytes{name=~\"shepherd-prod|shepherd-postgres\"})",
+                "instant": false,
+                "legendFormat": "{{name}} (working set)",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "max by (name) (container_spec_memory_limit_bytes{name=~\"shepherd-prod|shepherd-postgres\"})",
+                "instant": false,
+                "legendFormat": "{{name}} (limit)",
+                "range": true,
+                "refId": "B"
+              }
+            ],
+            "title": "Container: Memory Working Set vs Limit",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "Bps"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 16,
+              "y": 27
+            },
+            "id": 18,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_network_receive_bytes_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} receive",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_network_transmit_bytes_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} transmit",
+                "range": true,
+                "refId": "B"
+              }
+            ],
+            "title": "Container: Network I/O",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "Bps"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 0,
+              "y": 35
+            },
+            "id": 19,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_fs_writes_bytes_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} writes",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_fs_reads_bytes_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} reads",
+                "range": true,
+                "refId": "B"
+              }
+            ],
+            "title": "Container: Disk I/O",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "lastNotNull"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percentunit"
+                    },
+                    {
+                      "id": "decimals",
+                      "value": 3
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 12,
+              "x": 12,
+              "y": 35
+            },
+            "id": 20,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true
+              },
+              "tooltip": {
+                "mode": "multi",
+                "sort": "desc"
+              }
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_pressure_memory_stalled_seconds_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} memory stalled",
+                "range": true,
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_pressure_cpu_stalled_seconds_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} cpu stalled",
+                "range": true,
+                "refId": "B"
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "editorMode": "code",
+                "expr": "sum by (name) (rate(container_pressure_io_stalled_seconds_total{name=~\"shepherd-prod|shepherd-postgres\"}[5m]))",
+                "instant": false,
+                "legendFormat": "{{name}} io stalled",
+                "range": true,
+                "refId": "C"
+              }
+            ],
+            "title": "Container: Resource Pressure (PSI)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "fieldConfig": {
+              "defaults": {},
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 16,
+              "w": 24,
+              "x": 0,
+              "y": 43
+            },
+            "id": 21,
+            "options": {
+              "dedupStrategy": "none",
+              "enableInfiniteScrolling": false,
+              "enableLogDetails": true,
+              "prettifyLogMessage": true,
+              "showControls": false,
+              "showFieldSelector": false,
+              "showLevel": true,
+              "showTime": true,
+              "sortOrder": "Descending",
+              "timestampResolution": "ms",
+              "unwrappedColumns": false,
+              "wrapLogMessage": false
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "editorMode": "code",
+                "expr": "{service_name=\"shepherd-prod\"} |= ``",
+                "queryType": "range",
+                "refId": "A"
+              }
+            ],
+            "title": "Logs",
+            "type": "logs"
+          }
+        ],
+        "refresh": "",
+        "schemaVersion": 40,
+        "tags": [
+          "shepherd"
+        ],
+        "time": {
+          "from": "now-6h",
+          "to": "now"
+        },
+        "timezone": "browser",
+        "title": "Shepherd - Prod",
+        "uid": "shepherd-prod"
+      }
