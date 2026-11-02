@@ -25,7 +25,7 @@ permissions:
 jobs:
   secrets:
     name: secret scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5
         with:
@@ -44,7 +44,7 @@ jobs:
 
   lint:
     name: yaml lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5
       - run: pip install yamllint
@@ -52,7 +52,7 @@ jobs:
 
   manifests:
     name: manifest validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5
       - name: install kubeconform
@@ -70,7 +70,7 @@ jobs:
 
   sops:
     name: sops integrity
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v5
       - name: every *.sops.yaml is encrypted
