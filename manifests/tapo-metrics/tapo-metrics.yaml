@@ -1,0 +1,34 @@
+# NOTE: this manifest lives OUTSIDE ./flux so the root Kustomization does not
+# apply it. Its ServiceMonitor needs CRDs that ship with the
+# kube-prometheus-stack HelmRelease; on a fresh cluster the root apply must
+# not include it (the dry-run would fail with "no matches for kind
+# ServiceMonitor" before the HelmRelease ever runs). It is reconciled by the
+# `tapo-metrics` Kustomization in flux/tapo/, which retries until the
+# monitoring CRDs exist.
+#
+# One ServiceMonitor covers all plugs: the exporter aggregates every device in
+# TAPO_DEVICES behind a single /metrics endpoint and tags each series with
+# `device_name` (the plug's Tapo-app nickname) and `ip_address`.
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tapo-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: tapo-exporter
+spec:
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector:
+    matchNames:
+      - monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tapo-exporter
+  endpoints:
+    - port: metrics
+      scheme: http
+      interval: 30s
+      # Every scrape is 4 plugs x (KLAP handshake + 3 device calls) — keep
+      # headroom over the default.
+      scrapeTimeout: 20s
