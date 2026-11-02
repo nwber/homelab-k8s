@@ -1,0 +1,24 @@
+# Install-disk customization. NOTE: hostnames are NOT set here — a config-patch
+# cannot remove the default `auto: stable` from HostnameConfig (setting both
+# `auto` and `hostname` is invalid). Use talos/scripts/gen-configs.sh, which
+# rewrites the HostnameConfig document after generation.
+#
+# NOTE: passed via `--config-patch`, which applies to ALL node types (the
+# filename is historic). Control-plane-only documents live in
+# patches/controlplane-only.yaml.
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+    diskSelector:
+        match: disk.dev_path == "/dev/nvme0n1"
+    wipe: true
+---
+# Talos' host DNS forwards CoreDNS queries to the node resolver by default,
+# which is documented to break CoreDNS when Cilium has bpf.masquerade enabled
+# (Talos "Deploy Cilium CNI" known issues). Let CoreDNS resolve upstream itself.
+# CoreDNS pods can land on any node, so this goes to all node types.
+apiVersion: v1alpha1
+kind: ResolverConfig
+hostDNS:
+    enabled: true
+    forwardKubeDNSToHost: false

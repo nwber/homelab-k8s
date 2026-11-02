@@ -19,13 +19,17 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
 - Cluster: one control plane + three workers, Talos v1.14.1, Kubernetes v1.37.0.
   API endpoint `https://192.168.1.235:6443`. Current nodes: `homelab-k8s-cp-0`,
   `homelab-k8s-worker-0`, `homelab-k8s-worker-1`, `homelab-k8s-worker-2`.
-- Machine configs are **not** in this repo. They live in the `homelab` repo
-  (`talos/controlplane.yaml`, `talos/worker.yaml`, `talos/talosconfig`), which is
-  the source of truth for node-level config. This repo (`homelab-k8s`) is the
-  Flux/GitOps repo and holds cluster workloads only.
+- Machine config source of truth lives in **this repo** under `talos/`:
+  sops+age-encrypted `talos/{controlplane,worker,talosconfig}.sops.yaml`
+  (migrated from the `homelab` repo on 2026-11-03). Decrypt to the gitignored
+  plaintext working copies before applying — `talos/README.md` is the runbook.
+  `gen-configs.sh` regenerates them from `talos/secrets.yaml` (also gitignored).
+- This repo (`homelab-k8s`) is the Flux/GitOps repo; `flux/` holds workloads
+  and `talos/` holds node-level config — applied manually with `talosctl`,
+  never by Flux.
 - Always point `talosctl` at the repo copy:
   ```bash
-  export TALOSCONFIG=$HOME/git/homelab/talos/talosconfig
+  export TALOSCONFIG=$HOME/git/homelab-k8s/talos/talosconfig
   talosctl -n <node-ip> <command>
   ```
 
@@ -34,12 +38,13 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
 - **Match versions.** Keep `talosctl` pinned to the Talos version (v1.14.1) and
   identical to the boot media. A mismatched client installs *its* version of
   Talos, not the media's.
-- **Change config in git first.** Edit the machine config in the `homelab` repo,
-  commit, then apply. Never hand-edit a live node.
+- **Change config in git first.** Decrypt/edit/plain-copy the machine config
+  under `talos/` here, commit the re-encrypted `*.sops.yaml` copy, then apply.
+  Never hand-edit a live node.
 - **`worker.yaml` is worker-0's config, not a template for all workers.** It
   carries `hostname: homelab-k8s-worker-0`. Workers 1 and 2 have their own
-  hostnames applied out-of-band, and that fact is not recorded in the `homelab`
-  repo. Applying the same file to every worker makes them all register as
+  hostnames applied out-of-band, and that fact is not recorded in this repo.
+  Applying the same file to every worker makes them all register as
   `homelab-k8s-worker-0`: the node identities collide, the kubelet stops
   posting node status and the lease update fights (hit 2026-10-17 during the
   Cilium CNI swap). Rewrite the hostname per node — the same way
@@ -86,12 +91,16 @@ Refer to `talosctl --help` or `talosctl $command --help` for command guidance.
   `monitoring` and `logging` do exactly this. Without the label the pods are
   never created — the DaemonSet/Deployment reports `FailedCreate: violates
   PodSecurity "baseline:latest"` while the HelmRelease sits at `Stalled`.
-- **Secrets never go in this repo.** `controlplane.yaml`, `worker.yaml`, and
-  `talosconfig` carry the cluster CA keys and tokens. They stay in the `homelab`
-  repo and must not be committed unencrypted to anything public.
-- **Keep the boundary clean.** Node/machine config is applied with `talosctl`
-  from the `homelab` repo; workloads are delivered by Flux here. Don't manage node
-  config through Flux.
+- **Secrets go in sops-encrypted, or not at all.** `talos/*.sops.yaml` carry
+  the cluster CA keys, join tokens, and the client certs. They are encrypted
+  **whole-document** by the talos rule in `.sops.yaml` (which must stay first —
+  the generic Flux rule would match nothing in a Talos config and silently
+  leave the file plaintext). The decrypted working copies
+  (`controlplane.yaml`, `worker.yaml`, `talosconfig`, `secrets.yaml`) are
+  gitignored and must never be committed.
+- **Keep the boundary clean.** `talos/` is applied manually with `talosctl`
+  (machine configs are Talos documents, not Flux manifests); workloads are
+  delivered by Flux from `./flux`. Don't manage node config through Flux.
 
 ### Health and diagnostics
 

@@ -1,0 +1,6 @@
+# Talos plaintext secrets — never commit. Commit the talos/*.sops.yaml
+# (sops+age, whole-document encryption) copies instead.
+talos/controlplane.yaml
+talos/worker.yaml
+talos/talosconfig
+talos/secrets.yaml

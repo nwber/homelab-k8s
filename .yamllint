@@ -10,3 +10,8 @@ ignore: |
   flux/flux-system/gotk-components.yaml
   # Vendored verbatim from kubernetes-sigs/gateway-api — do not edit.
   flux/gateway-api/crds/
+  # Decrypted Talos machine configs (gitignored working copies produced by
+  # talos/scripts/gen-configs.sh) — output of `talosctl gen config`, not ours
+  # to reformat.
+  talos/controlplane.yaml
+  talos/worker.yaml

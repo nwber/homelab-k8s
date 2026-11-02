@@ -6,7 +6,7 @@ metadata:
   labels:
     # The cluster enforces Pod Security `baseline` on every namespace that
     # does not say otherwise (defaults in the Talos KubeAdmissionControlConfig,
-    # see the `homelab` repo), and `baseline` forbids hostPath volumes. Alloy
+    # see `talos/`), and `baseline` forbids hostPath volumes. Alloy
     # needs a hostPath to read /var/log, so this namespace opts up to
     # `privileged` — exactly like `monitoring`, which needs it for local-path.
     #
