@@ -57,11 +57,16 @@ spec:
         enabled: true
         size: 2Gi
       # Dashboards provisioned through the sidecar (flux/dashboards/) carry
-      # their folder on a `grafana_folder` annotation; without this the
-      # annotation is ignored and everything lands in General.
+      # their folder on a `grafana_folder` annotation; the sidecar then
+      # writes them into /tmp/dashboards/<FolderName>/ subdirs, and this
+      # option makes the provider map those subdirs to real Grafana
+      # folders. Without both halves the annotation is ignored and
+      # everything lands in General.
       sidecar:
         dashboards:
           folderAnnotation: grafana_folder
+          provider:
+            foldersFromFilesStructure: true
       # Measured from cAdvisor over the cluster's first four days: Grafana
       # settles at ~455Mi working set (p95 456Mi, max 458Mi), CPU p95 0.02
       # cores. Request covers the plateau, limit leaves room for rendering a
