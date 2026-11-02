@@ -19,6 +19,11 @@ data:
         type: loki
         access: proxy
         url: http://loki.logging.svc.cluster.local:3100
+        # Pinned so the migrated dashboards (flux/dashboards/) reference
+        # this datasource by a uid we choose, not a generated one. The old
+        # homelab1 Loki uid (P8E80F9AEF21F6940) was remapped to this on
+        # import.
+        uid: loki
         jsonData:
           maxLines: 1000
         editable: false
