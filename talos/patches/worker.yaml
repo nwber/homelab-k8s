@@ -1,0 +1,8 @@
+# Install-disk customization. See controlplane.yaml patch header for why the
+# hostname is set by talos/scripts/gen-configs.sh instead of here.
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+    diskSelector:
+        match: disk.dev_path == "/dev/nvme0n1"
+    wipe: true

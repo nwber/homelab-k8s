@@ -1,6 +1,16 @@
-# SOPS configuration: any manifest matching *.sops.yaml is encrypted with the
-# age key below. Only data/stringData are encrypted so that kind/apiVersion/
-# metadata stay readable for kustomize and Flux.
+# SOPS configuration.
+#
+# Two file categories, matched in order (first matching rule wins):
+#
+#   talos/*.sops.yaml — whole Talos machine configs / talosconfig. Plain YAML
+#   documents with no data/stringData keys, so the ENTIRE document is
+#   encrypted. This rule must stay FIRST above the generic rule: a Talos
+#   config has no data/stringData, so if the generic rule (which encrypts only
+#   those keys) were to match it, sops would silently emit a file whose values
+#   are still plaintext — it does not error (verified with sops 3.13.3).
+#
+#   any other *.sops.yaml — Flux manifests. Only data/stringData are encrypted
+#   so that kind/apiVersion/metadata stay readable for kustomize and Flux.
 #
 # The matching PRIVATE key lives:
 #   - locally at ~/.config/sops/age/keys.txt (sops default lookup path)
@@ -8,6 +18,8 @@
 #     (used by kustomize-controller, wired via the flux-system Kustomization)
 # Back it up somewhere safe — without it the encrypted values are unrecoverable.
 creation_rules:
+  - path_regex: talos/.*\.sops\.ya?ml$
+    age: age142x2u7a9ssh07kl5zu5753czf4zrlm6ae75ejkmznmucst084sdscaw80j
   - path_regex: \.sops\.yaml$
     encrypted_regex: ^(data|stringData)$
     age: age142x2u7a9ssh07kl5zu5753czf4zrlm6ae75ejkmznmucst084sdscaw80j

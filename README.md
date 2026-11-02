@@ -28,8 +28,8 @@
 - [ ] **RustFS metrics into Grafana** — RustFS only exports Prometheus metrics
   over OTLP (`RUSTFS_OBS_ENDPOINT`), so scraping it needs an OpenTelemetry
   collector with a Prometheus exporter in front of kube-prometheus-stack
-- [ ] **Per-worker Talos machine configs** (BER-136) — `talos/worker.yaml` in the
-  `homelab` repo is worker-0's config, not a template for all workers
+- [ ] **Per-worker Talos machine configs** (BER-136) — `talos/worker.sops.yaml`
+  is worker-0's config, not a template for all workers
   - Generate one config per worker, or document the per-node apply procedure
   - Guard: after `apply-config`, assert the reported hostname still matches the
     node's existing Node object
@@ -53,7 +53,9 @@
 
 ## Bootstrap (fresh cluster)
 
-See the `homelab` repo for the Talos machine configs. On a bare cluster:
+The Talos machine configs live in `talos/` (sops-encrypted, decrypt to the
+gitignored plaintext working copies before applying — see `talos/README.md`).
+On a bare cluster:
 
 1. Install Cilium out-of-band before `flux bootstrap`: with `cni: none` and
    kube-proxy off, nothing can schedule — not even Flux — until a CNI is

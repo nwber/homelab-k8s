@@ -64,8 +64,11 @@ jobs:
       - name: validate
         # *.sops.yaml is skipped: its values are SOPS ciphertext, not the
         # plaintext the schema expects.
+        # talos/ is skipped: its files are Talos machine config documents, not
+        # Kubernetes manifests — they are validated by `talosctl validate`
+        # (mode metal) in talos/scripts/gen-configs.sh instead.
         run: |
-          git ls-files '*.yaml' ':!*.sops.yaml' \
+          git ls-files '*.yaml' ':!*.sops.yaml' ':!talos/' \
             | xargs -n1 kubeconform -ignore-missing-schemas -strict -summary
 
   sops:

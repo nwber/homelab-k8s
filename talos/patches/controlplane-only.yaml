@@ -1,0 +1,17 @@
+# Control-plane-only machine config patch (passed via
+# `--config-patch-control-plane`). KubeFlannelCNIConfig and KubeProxyConfig are
+# rejected on workers, and they describe cluster-wide components that Talos
+# renders from the control-plane config anyway.
+---
+# Cilium replaces flannel as the CNI. Deleting this document removes the
+# flannel bootstrap DaemonSet cluster-wide.
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+$patch: delete
+---
+# Cilium replaces kube-proxy with its eBPF implementation (a hard requirement
+# for Cilium's Gateway API support). Talos renders kube-proxy as a bootstrap
+# DaemonSet from the control-plane config, so disabling it here is enough.
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false
