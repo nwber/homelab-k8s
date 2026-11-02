@@ -14,6 +14,13 @@ metadata:
 data:
   loki-datasource.yaml: |
     apiVersion: 1
+    # Provisioning never updates an existing datasource's uid (and fails
+    # with "data source not found" when a file asks for a conflict) —
+    # delete the entry by name first, then re-create it with the pinned
+    # uid below. Same pattern the homelab1 setup used.
+    deleteDatasources:
+      - name: Loki
+        orgId: 1
     datasources:
       - name: Loki
         type: loki
