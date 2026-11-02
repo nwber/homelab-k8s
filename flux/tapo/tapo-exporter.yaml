@@ -1,0 +1,84 @@
+---
+# Tapo P110M plug exporter (BER-94/95): polls the plugs' local KLAP API on
+# demand and serves power/energy metrics. Scraped by the in-cluster
+# kube-prometheus-stack and visualised by the "Tapo Plug Power" dashboard in
+# the cluster Grafana (flux/dashboards/tapo-power.yaml).
+#
+# The exporter does a KLAP handshake + 3 device calls per plug per scrape and
+# caches nothing, so there are deliberately NO liveness/readiness probes: a
+# probe against /metrics would multiply the plug polling rate.
+#
+# Deployed in `monitoring` (privileged Pod Security) because the upstream image
+# runs as root and lives right next to the Prometheus that scrapes it.
+#
+# Pinned by digest like every app in this repo (`:latest` is mutable). Upgrades:
+#   docker buildx imagetools inspect ghcr.io/mateuxlucax/tapo-p110-prometheus-exporter:latest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tapo-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: tapo-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tapo-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tapo-exporter
+    spec:
+      containers:
+        - name: tapo-exporter
+          image: ghcr.io/mateuxlucax/tapo-p110-prometheus-exporter@sha256:5c5d4b7122e2d6062ef69106ad15f6e3809ff412f0ef5db94852780eb97685dc
+          env:
+            # Comma-separated list of bare plug IPs. The exporter ignores the
+            # upstream README's `IP:NAME` notation and takes the `device_name`
+            # label from each plug's Tapo-app nickname instead, so this list
+            # must mirror the UniFi DHCP reservations (192.168.1.147 =
+            # homelab-cp-0; rename each plug in the Tapo app to match its node).
+            - name: TAPO_DEVICES
+              value: "192.168.1.100,192.168.1.147,192.168.1.185,192.168.1.231"
+            # Credentials for the Tapo account the plugs are bound to (the
+            # exporter performs the local KLAP handshake with the cloud
+            # account). SOPS-encrypted at tapo-credentials.sops.yaml; reading
+            # them from an existing Secret keeps them out of Helm-style
+            # release state and plaintext git.
+            - name: TAPO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: tapo-credentials
+                  key: TAPO_USERNAME
+            - name: TAPO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tapo-credentials
+                  key: TAPO_PASSWORD
+          ports:
+            - name: metrics
+              containerPort: 9100
+          # Tiny Rust binary with on-demand scrapes only (no polling loop);
+          # sizing carried over from the ansible exporter's 128M compose limit.
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tapo-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: tapo-exporter
+spec:
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+  selector:
+    app.kubernetes.io/name: tapo-exporter
